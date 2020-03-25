@@ -68,7 +68,7 @@ def auth_credentials():
     # json validations
     except:
         print("Error: json communication problem")
-        return  "Error: json communication problem"
+        return  "Error: json communication problem", 404
     
     #------------------------------#
     # sent info validation
@@ -84,12 +84,12 @@ def auth_credentials():
         if look_for_email == None:
             # if no email was retrieved
             print("Error: email not found")
-            return "Error: email not found"
+            return "Error: email not found", 404
 
         elif user_json['password'] != look_for_email['password']:
             # if email was retrieved but password is wrong
             print("Error: wrong password")
-            return "Error: wrong password"
+            return "Error: wrong password", 404
         else:
             # everything went good
             
@@ -110,12 +110,12 @@ def auth_credentials():
         if look_for_name == None:
             # if no name was retrieved
             print("Error: username not found")
-            return "Error: username not found"
+            return "Error: username not found", 404
 
         elif user_json['password'] != look_for_name['password']:
             # if email was retrieved but password is wrong
             print("Error: wrong password")
-            return "Error: wrong password"
+            return "Error: wrong password", 404
         else:
             # everything went good
             
@@ -144,7 +144,7 @@ def register_credentials():
     # json validations
     except:
         print("Error: json communication problem")
-        return  "Error: json communication problem"
+        return  "Error: json communication problem", 404
     
     #------------------------------#
     # sent info validation
@@ -152,33 +152,33 @@ def register_credentials():
         # checking no field is empty
         if value0 == "" :
             print("empty field provided")
-            return "Error: empty field provided"  
+            return "Error: empty field provided", 404  
         # checking no field is just spaces
         elif len(value0)==value0.count(" "):
             print("one of fields provided is just spaces")
-            return "Error: a field provided is just spaces"
+            return "Error: a field provided is just spaces", 404
 
     if len(user_json['password']) < 5 :
         # checking passowrd is at least 5 notes
         print("password too short")
-        return "Error: password too short, at least 5 characters"
+        return "Error: password too short, at least 5 characters", 404
 
     elif len(user_json['username']) < 3 :
         # checking name is at least 3 notes
         print("name too short")
-        return "Error: name too short, at least 3 characters"
+        return "Error: name too short, at least 3 characters", 404
     
     elif re.search("[@]", user_json['username']):
         # disallowing @ to distinguish between email and name later
         # need to disallow all special characters later on
         print("cant put @ in name")
-        return "Error: cant put @ in name"
+        return "Error: cant put @ in name", 404
 
     elif not re.search("[@]", user_json['email']):
         # making @ mandatory to distinguish between email and name later
         # need to disallow special characters later on
         print("must put @ in email")
-        return "Error: must put @ in email"
+        return "Error: must put @ in email", 404
         
     else: 
     #------------------------------#
@@ -201,7 +201,7 @@ def register_credentials():
             return "Success: registration"
         except:
             print("Error: db communication")
-            return "Error: db communication"
+            return "Error: db communication", 404
     #------------------------------#
 
 
