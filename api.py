@@ -195,7 +195,7 @@ def register_credentials():
         registerer = db_connect('user_collection')
         
         # registering new user
-        print("registration attempt of ", db_obj)
+        print("registration attempt of user: ", db_obj)
         try:
             registerer.insert_one(db_obj)
             return "Success: registration"
@@ -204,6 +204,100 @@ def register_credentials():
             return "Error: db communication", 404
     #------------------------------#
 
+
+#-------------------------------------------------#
+# posts route with method=POST
+@app.route("/posts", methods=['POST'])
+def register_post():
+    #------------------------------#
+    # json related
+    try:     
+        # taking the json file sent
+        post_json = request.get_json()
+        print("!")
+        # making a list of keys and values for validation check
+        # reg_key_list = list( user_json.keys() )
+        post_value_list = list( post_json.values() )
+    
+    # json validations
+    except:
+        print("Error: json communication problem")
+        return  "Error: json communication problem", 404
+    
+    #------------------------------#
+    # sent info validation
+    for post_value in post_value_list:
+        # checking no field is empty
+        if post_value == "" :
+            print("empty field provided")
+            return "Error: empty field provided", 404  
+        # checking no field is just spaces
+        elif len(post_value)==post_value.count(" "):
+            print("one of fields provided is just spaces")
+            return "Error: a field provided is just spaces", 404
+
+    #------------------------------#
+        # taking the info and putting it in DB
+        # first ensuring strings
+        name = str(post_json['name'])
+        title = str(post_json['title'])
+        description = str(post_json['description'])
+        
+        # then formatting to ensure db compatibility  
+        db_obj = { 'name':name, 'title':title, 'description':description}
+        
+        # connecting to db with relevant collection - posts
+        post_registerer = db_connect('post_collection')
+        
+        # registering new post
+        print("registration attempt of post:", db_obj)
+        try:
+            post_registerer.insert_one(db_obj)
+            return "Success: registration"
+        except:
+            print("Error: db communication")
+            return "Error: db communication", 404
+    #------------------------------#
+
+
+#-------------------------------------------------#
+# posts route with method=GET
+@app.route("/posts", methods=['GET'])
+def retrieve_posts():
+        
+        # a list to append all posts to and then jsonify
+        all_posts = []
+
+        try:
+            # connecting to db with relevant collection - posts
+            post_retriever = db_connect('post_collection')
+            
+            # querying all of the posts db
+            posts_query = post_retriever.find({})
+        except:
+            print("Error: db communication")
+            return "Error: db communication", 404
+
+        # appending them to the list stated above
+        for post in posts_query:
+            print(post)
+            
+            # looking for objectid and making it str to jsonify later on
+            object_id = post['_id']
+            post['_id'] = str(object_id)
+            
+            
+            all_posts.append(post)
+        
+        
+
+        try:
+            print("trying to return the queries")
+            return jsonify(all_posts)
+        except:
+            print("Error: problem jsonifing or returning")
+            return "Error: problem jsonifing or returning", 404
+    #------------------------------#
 
 #-------------------------------------------------#
 # RUNNING THE APP # 
