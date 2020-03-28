@@ -129,8 +129,7 @@ def auth_credentials():
 
 #-------------------------------------------------#
 # registration route
-# ask koren if 'GET' method is needed here
-@app.route("/auth/local/register", methods=['GET','POST'])
+@app.route("/auth/local/register", methods=['POST'])
 def register_credentials():
     #------------------------------#
     # json related
@@ -214,7 +213,6 @@ def register_post():
     try:     
         # taking the json file sent
         post_json = request.get_json()
-        print("!")
         # making a list of keys and values for validation check
         # reg_key_list = list( user_json.keys() )
         post_value_list = list( post_json.values() )
@@ -265,39 +263,420 @@ def register_post():
 @app.route("/posts", methods=['GET'])
 def retrieve_posts():
         
-        # a list to append all posts to and then jsonify
-        all_posts = []
+    # a list to append all posts to and then jsonify
+    all_posts = []
 
+    try:
+        # connecting to db with relevant collection - posts
+        post_retriever = db_connect('post_collection')
+        
+        # querying all of the posts db
+        posts_query = post_retriever.find({})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # appending them to the list stated above
+    for post in posts_query:
+        
+        
+        # looking for objectid and making it str to jsonify later on
+        object_id = post['_id']
+        post['_id'] = str(object_id)
+        
+        print(post)
+        all_posts.append(post)
+    
+    
+
+    try:
+        print("trying to return the queries")
+        return jsonify(all_posts)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+
+#-------------------------------------------------#
+# posts route with method=DELETE
+
+@app.route("/posts/<string:id>", methods=['DELETE'])
+def remove_post(id):
+    from bson.objectid import ObjectId        
+    print(id)
+    try:
+        # connecting to db with relevant collection - posts
+        post_delete = db_connect('post_collection')
+        
+        # deleting the relevant object
+        p = post_delete.delete_one({'_id': ObjectId(id)})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # returning answer
+    try:
+        print(f'deleted post with id {id}')
+        return jsonify(id)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+
+#-------------------------------------------------#
+# tasks route with method=POST
+@app.route("/tasks", methods=['POST'])
+def register_task():
+    #------------------------------#
+    # json related
+    try:     
+        # taking the json file sent
+        task_json = request.get_json()
+        # making a list of keys and values for validation check
+        # reg_key_list = list( user_json.keys() )
+        task_value_list = list( task_json.values() )
+    
+    # json validations
+    except:
+        print("Error: json communication problem")
+        return  "Error: json communication problem", 404
+    
+    #------------------------------#
+    # sent info validation
+    for task_value in task_value_list:
+        # checking no field is empty
+        if task_value == "" :
+            print("empty field provided")
+            return "Error: empty field provided", 404  
+        # checking no field is just spaces
+        elif len(task_value) == task_value.count(" "):
+            print("one of fields provided is just spaces")
+            return "Error: a field provided is just spaces", 404
+
+    #------------------------------#
+        # taking the info and putting it in DB
+        # first ensuring strings
+        task = str(task_json['task'])
+        
+        # then formatting to ensure db compatibility  
+        db_obj = { 'task': task}
+        
+        # connecting to db with relevant collection - posts
+        task_registerer = db_connect('task_collection')
+        
+        # registering new post
+        print("registration attempt of task:", db_obj)
         try:
-            # connecting to db with relevant collection - posts
-            post_retriever = db_connect('post_collection')
-            
-            # querying all of the posts db
-            posts_query = post_retriever.find({})
+            task_registerer.insert_one(db_obj)
+            return "Success: registration"
         except:
             print("Error: db communication")
             return "Error: db communication", 404
-
-        # appending them to the list stated above
-        for post in posts_query:
-            print(post)
-            
-            # looking for objectid and making it str to jsonify later on
-            object_id = post['_id']
-            post['_id'] = str(object_id)
-            
-            
-            all_posts.append(post)
-        
-        
-
-        try:
-            print("trying to return the queries")
-            return jsonify(all_posts)
-        except:
-            print("Error: problem jsonifing or returning")
-            return "Error: problem jsonifing or returning", 404
     #------------------------------#
+
+
+#-------------------------------------------------#
+# tasks route with method=GET
+@app.route("/tasks", methods=['GET'])
+def retrieve_tasks():
+        
+    # a list to append all posts to and then jsonify
+    all_tasks = []
+
+    try:
+        # connecting to db with relevant collection - posts
+        task_retriever = db_connect('task_collection')
+        
+        # querying all of the posts db
+        tasks_query = task_retriever.find({})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # appending them to the list stated above
+    for task in tasks_query:
+        print(task)
+        
+        # looking for objectid and making it str to jsonify later on
+        object_id = task['_id']
+        task['_id'] = str(object_id)
+        
+        
+        all_tasks.append(task)
+    
+    
+
+    try:
+        print("trying to return the queries")
+        return jsonify(all_tasks)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+
+#-------------------------------------------------#
+# tasks route with method=DELETE
+
+@app.route("/tasks/<string:id>", methods=['DELETE'])
+def remove_task(id):
+    from bson.objectid import ObjectId        
+    try:
+        # connecting to db with relevant collection - posts
+        task_delete = db_connect('task_collection')
+        
+        # deleting the relevant object
+        task_delete.delete_one({'_id': ObjectId(id)})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # returning answer
+    try:
+        print(f'deleted post with id {id}')
+        return jsonify(id)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+
+#-------------------------------------------------#
+# calendars route with method=POST
+@app.route("/calenders", methods=['POST'])
+def register_date():
+    #------------------------------#
+    # json related
+    try:     
+        # taking the json file sent
+        date_json = request.get_json()
+        # making a list of keys and values for validation check
+        # reg_key_list = list( user_json.keys() )
+        date_value_list = list( date_json.values() )
+    
+    # json validations
+    except:
+        print("Error: json communication problem")
+        return  "Error: json communication problem", 404
+    
+    #------------------------------#
+    # sent info validation
+    for date_value in date_value_list:
+        # checking no field is empty
+        if date_value == "" :
+            print("empty field provided")
+            return "Error: empty field provided", 404  
+        # checking no field is just spaces
+        elif len(date_value) == date_value.count(" "):
+            print("one of fields provided is just spaces")
+            return "Error: a field provided is just spaces", 404
+
+    #------------------------------#
+        # taking the info and putting it in DB
+        # first ensuring strings
+        title = str(date_json['title'])
+        date = str(date_json['date'])
+
+        # then formatting to ensure db compatibility  
+        db_obj = { 'title': title, 'date': date }
+        
+        # connecting to db with relevant collection - posts
+        date_registerer = db_connect('calendar_collection')
+        
+        # registering new post
+        print("registration attempt of date:", db_obj)
+        try:
+            date_registerer.insert_one(db_obj)
+            return "Success: registration"
+        except:
+            print("Error: db communication")
+            return "Error: db communication", 404
+    #------------------------------#
+
+
+#-------------------------------------------------#
+# calendars route with method=GET
+@app.route("/calenders", methods=['GET'])
+def retrieve_calendar():
+        
+    # a list to append all posts to and then jsonify
+    all_dates = []
+
+    try:
+        # connecting to db with relevant collection - posts
+        date_retriever = db_connect('calendar_collection')
+        
+        # querying all of the posts db
+        dates_query = date_retriever.find({})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # appending them to the list stated above
+    for date in dates_query:
+        print(date)
+        
+        # looking for objectid and making it str to jsonify later on
+        object_id = date['_id']
+        date['_id'] = str(object_id)
+        
+        
+        all_dates.append(date)
+    
+    
+
+    try:
+        print("trying to return the queries")
+        return jsonify(all_dates)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+
+#-------------------------------------------------#
+# calendars route with method=DELETE
+@app.route("/calenders/<string:id>", methods=['DELETE'])
+def remove_date(id):
+    from bson.objectid import ObjectId        
+    try:
+        # connecting to db with relevant collection - posts
+        date_delete = db_connect('calendar_collection')
+        
+        # deleting the relevant object
+        date_delete.delete_one({'_id': ObjectId(id)})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # returning answer
+    try:
+        print(f'deleted post with id {id}')
+        return jsonify(id)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+
+#-------------------------------------------------#
+# users connectivity check route with method=POST
+@app.route("/onlines", methods=['POST'])
+def register_online():
+    #------------------------------#
+    # json related
+    try:     
+        # taking the json file sent
+        online_json = request.get_json()
+        # making a list of keys and values for validation check
+        # reg_key_list = list( user_json.keys() )
+        online_value_list = list( online_json.values() )
+    
+    # json validations
+    except:
+        print("Error: json communication problem")
+        return  "Error: json communication problem", 404
+    
+    #------------------------------#
+    # sent info validation
+    for online_value in online_value_list:
+        # checking no field is empty
+        if online_value == "" :
+            print("empty field provided")
+            return "Error: empty field provided", 404  
+        # checking no field is just spaces
+        elif len(online_value) == online_value.count(" "):
+            print("one of fields provided is just spaces")
+            return "Error: a field provided is just spaces", 404
+
+    #------------------------------#
+        # taking the info and putting it in DB
+        # first ensuring strings
+        name = str(online_json['name'])
+        
+        # then formatting to ensure db compatibility  
+        db_obj = { 'name': name }
+        
+        # connecting to db with relevant collection - posts
+        online_registerer = db_connect('online_collection')
+        
+        # registering new post
+        print("registration attempt of online user:", db_obj)
+        try:
+            online_registerer.insert_one(db_obj)
+            return "Success: registration"
+        except:
+            print("Error: db communication")
+            return "Error: db communication", 404
+    #------------------------------#
+
+
+#-------------------------------------------------#
+# users connectivity check route with method=GET
+@app.route("/onlines", methods=['GET'])
+def retrieve_onlines():
+        
+    # a list to append all posts to and then jsonify
+    all_onlines = []
+
+    try:
+        # connecting to db with relevant collection - posts
+        online_retriever = db_connect('online_collection')
+        
+        # querying all of the posts db
+        onlines_query = online_retriever.find({})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # appending them to the list stated above
+    for online in onlines_query:
+        print(online)
+        
+        # looking for objectid and making it str to jsonify later on
+        object_id = online['_id']
+        online['_id'] = str(object_id)
+        
+        
+        all_onlines.append(online)
+    
+    
+
+    try:
+        print("trying to return the queries")
+        return jsonify(all_onlines)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+
+#-------------------------------------------------#
+# users connectivity check route with method=DELETE
+@app.route("/onlines/<string:id>", methods=['DELETE'])
+def remove_online(id):
+    from bson.objectid import ObjectId        
+    try:
+        # connecting to db with relevant collection - posts
+        online_delete = db_connect('online_collection')
+        
+        # deleting the relevant object
+        online_delete.delete_one({'_id': ObjectId(id)})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # returning answer
+    try:
+        print(f'deleted post with id {id}')
+        return jsonify(id)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
 
 #-------------------------------------------------#
 # RUNNING THE APP # 
