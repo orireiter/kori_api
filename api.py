@@ -655,15 +655,15 @@ def retrieve_onlines():
 
 #-------------------------------------------------#
 # users connectivity check route with method=DELETE
-@app.route("/onlines/<string:id>", methods=['DELETE'])
-def remove_online(id):
+@app.route("/onlines/<string:user_name>", methods=['DELETE'])
+def remove_online(user_name):
     from bson.objectid import ObjectId        
     try:
         # connecting to db with relevant collection - posts
         online_delete = db_connect('online_collection')
         
         # deleting the relevant object
-        online_delete.delete_one({'_id': ObjectId(id)})
+        online_delete.delete_one({'name': user_name})
     except:
         print("Error: db communication")
         return "Error: db communication", 404
@@ -676,6 +676,180 @@ def remove_online(id):
         print("Error: problem jsonifing or returning")
         return "Error: problem jsonifing or returning", 404
 #------------------------------#
+
+#-------------------------------------------------#
+# projects route with method=POST
+@app.route("/projects", methods=['POST'])
+def register_project():
+    #------------------------------#
+    # json related
+    try:     
+        # taking the json file sent
+        project_json = request.get_json()
+        # making a list of keys and values for validation check
+        # reg_key_list = list( user_json.keys() )
+        project_value_list = list( project_json.values() )
+    
+    # json validations
+    except:
+        print("Error: json communication problem")
+        return  "Error: json communication problem", 404
+    
+    #------------------------------#
+    # sent info validation
+    for project_value in project_value_list:
+        # checking no field is empty
+        if project_value == "" :
+            print("empty field provided")
+            return "Error: empty field provided", 404  
+        # checking no field is just spaces
+        elif len(project_value) == project_value.count(" "):
+            print("one of fields provided is just spaces")
+            return "Error: a field provided is just spaces", 404
+
+    #------------------------------#
+        # taking the info and putting it in DB
+        # first ensuring strings
+        name = str(project_json['name'])
+        desc = str(project_json['description'])
+        comments = str(project_json['comments'])
+
+        # then formatting to ensure db compatibility  
+        db_obj = { 'name': name, 'description': desc, 'comments': comments }
+        
+        # connecting to db with relevant collection - posts
+        project_registerer = db_connect('project_collection')
+        
+        # registering new post
+        print("registration attempt of project:", db_obj)
+        try:
+            project_registerer.insert_one(db_obj)
+            return "Success: registration"
+        except:
+            print("Error: db communication")
+            return "Error: db communication", 404
+    #------------------------------#
+
+
+#-------------------------------------------------#
+# projects route with method=GET
+@app.route("/projects", methods=['GET'])
+def retrieve_projects():
+        
+    # a list to append all posts to and then jsonify
+    all_projects = []
+
+    try:
+        # connecting to db with relevant collection - posts
+        project_retriever = db_connect('project_collection')
+        
+        # querying all of the posts db
+        projects_query = project_retriever.find({})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # appending them to the list stated above
+    for project in projects_query:
+        # print(project)
+        
+        # looking for objectid and making it str to jsonify later on
+        object_id = project['_id']
+        project['_id'] = str(object_id)
+        
+        
+        all_projects.append(project)
+    
+    
+
+    try:
+        print("trying to return the queries")
+        return jsonify(all_projects)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+
+#-------------------------------------------------#
+# projects route with method=DELETE
+@app.route("/projects/<string:id>", methods=['DELETE'])
+def remove_project(id):
+    from bson.objectid import ObjectId        
+    try:
+        # connecting to db with relevant collection - posts
+        project_delete = db_connect('project_collection')
+        
+        # deleting the relevant object
+        project_delete.delete_one({'_id': ObjectId(id)})
+    except:
+        print("Error: db communication")
+        return "Error: db communication", 404
+
+    # returning answer
+    try:
+        print(f'deleted project with id {id}')
+        return jsonify(id)
+    except:
+        print("Error: problem jsonifing or returning")
+        return "Error: problem jsonifing or returning", 404
+#------------------------------#
+
+#-------------------------------------------------#
+# projects route with method=PUT
+@app.route("/projects/<string:id>", methods=['PUT'])
+def update_project(id):
+    from bson.objectid import ObjectId
+    #------------------------------#
+    # json related
+    try:     
+        # taking the json file sent
+        project_json = request.get_json()
+        return jsonify(project_json)
+        # making a list of keys and values for validation check
+        # reg_key_list = list( user_json.keys() )
+        project_value_list = list( project_json.values() )
+        log = open("log.txt", "w")
+        log.write(project_json)
+    # json validations
+    except:
+        print("Error: json communication problem")
+        return  "Error: json communication problem", 404
+    
+    #------------------------------#
+    # sent info validation
+    for project_value in project_value_list:
+        # checking no field is empty
+        if project_value == "" :
+            print("empty field provided")
+            return "Error: empty field provided", 404  
+        # checking no field is just spaces
+        elif len(project_value) == project_value.count(" "):
+            print("one of fields provided is just spaces")
+            return "Error: a field provided is just spaces", 404
+
+    #------------------------------#
+        # taking the info and putting it in DB
+        # first ensuring strings
+        comments = str(project_json['comments'])
+        log = open("log.txt", "w")
+        log.write(comments)
+        query = {'_id': ObjectId(id)}
+        # then formatting to ensure db compatibility  
+        update = { "$set": { 'comments': comments } }
+        
+        # connecting to db with relevant collection - posts
+        project_registerer = db_connect('project_collection')
+        
+        # registering new post
+        print("update attempt of project with id: ", str(id) )
+        try:
+            project_registerer.update_one(query, update)
+            return "Success: update"
+        except:
+            print("Error: db communication")
+            return "Error: db communication", 404
+    #------------------------------#
 
 
 #-------------------------------------------------#
