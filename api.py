@@ -809,8 +809,7 @@ def update_project(id):
         # making a list of keys and values for validation check
         # reg_key_list = list( user_json.keys() )
         project_value_list = list( project_json.values() )
-        log = open("log.txt", "w")
-        log.write(project_json)
+        
     # json validations
     except:
         print("Error: json communication problem")
@@ -832,8 +831,7 @@ def update_project(id):
         # taking the info and putting it in DB
         # first ensuring strings
         comments = str(project_json['comments'])
-        log = open("log.txt", "w")
-        log.write(comments)
+        
         query = {'_id': ObjectId(id)}
         # then formatting to ensure db compatibility  
         update = { "$set": { 'comments': comments } }
