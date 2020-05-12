@@ -18,7 +18,7 @@ def get_config(parameter):
     parser = configparser.RawConfigParser()
     config_path = r".\api.config"
     parser.read(config_path)
-    return parser.get('api-config', str(parameter))
+    return parser.get('web_api-config', str(parameter))
 
 #------------------------------------------------------------------#
 # DB related
@@ -317,7 +317,7 @@ def remove_post(id):
 
     # returning answer
     try:
-        print(f'deleted post with id {id}')
+        print(f"deleted post with id {id}")
         return jsonify(id)
     except:
         print("Error: problem jsonifing or returning")
@@ -376,7 +376,7 @@ def register_task():
             return "Error: db communication", 404
     #------------------------------#
 
-
+firr = "+"
 #-------------------------------------------------#
 # tasks route with method=GET
 @app.route("/tasks", methods=['GET'])
