@@ -5,6 +5,7 @@ import configparser, os
 from os import walk
 from werkzeug.utils import secure_filename
 from datetime import datetime
+from flask_autoindex import AutoIndex
 
 #------------------------------------------------------------------#
 # PARSER related
@@ -33,7 +34,7 @@ root1 = get_config("base_path")
 app = Flask(__name__)
 # allowing different origins to communicate with it
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
-
+AutoIndex(app, browse_root=root1)
 #-------------------------------------------------#
 # route to VIEW docs and folders in the shared folder
 @app.route("/docs_view/", methods=["GET"])
@@ -158,7 +159,7 @@ def mk_dir(path):
         new_folder = extra_path[-1]
         extra_path.pop(-1)
         fullpath = root1
-    
+
         for extra in extra_path:
             fullpath = fullpath + extra + "/"    
     except:
